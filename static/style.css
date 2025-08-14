@@ -1,0 +1,185 @@
+:root {
+    --board-bg: #cce6cf;
+    --space-border: #888;
+    --space-bg: #f7f7f7;
+    --panel-bg: #ffffff;
+    --shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.app-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.game-board-container {
+    flex-grow: 1;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: 100px repeat(3, 1fr) 100px;
+    grid-template-rows: 100px repeat(3, 1fr) 100px;
+    width: 700px;
+    height: 700px;
+    border: 2px solid black;
+    background-color: var(--board-bg);
+}
+
+.space {
+    border: 1px solid var(--space-border);
+    background-color: var(--space-bg);
+    padding: 5px;
+    position: relative;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.space .space-name {
+    font-weight: bold;
+}
+
+.space .space-owner {
+    font-style: italic;
+    color: #555;
+}
+
+.space .players-on-space {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-top: 5px;
+}
+.players-on-space .player-marker {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid #fff;
+}
+
+
+/* Grid layout positioning */
+#space-0  { grid-column: 1 / 2;  grid-row: 5 / 6; }
+#space-1  { grid-column: 2 / 3;  grid-row: 5 / 6; }
+#space-2  { grid-column: 3 / 4;  grid-row: 5 / 6; }
+#space-3  { grid-column: 4 / 5;  grid-row: 5 / 6; }
+#space-4  { grid-column: 5 / 6;  grid-row: 5 / 6; }
+#space-5  { grid-column: 5 / 6;  grid-row: 4 / 5; }
+#space-6  { grid-column: 5 / 6;  grid-row: 3 / 4; }
+#space-7  { grid-column: 5 / 6;  grid-row: 2 / 3; }
+#space-8  { grid-column: 5 / 6;  grid-row: 1 / 2; }
+#space-9  { grid-column: 4 / 5;  grid-row: 1 / 2; }
+#space-10 { grid-column: 3 / 4;  grid-row: 1 / 2; }
+#space-11 { grid-column: 2 / 3;  grid-row: 1 / 2; }
+#space-12 { grid-column: 1 / 2;  grid-row: 1 / 2; } /* Note: Board is 12 spaces 0-11, so this is Jail */
+#space-13 { grid-column: 1 / 2;  grid-row: 2 / 3; }
+#space-14 { grid-column: 1 / 2;  grid-row: 3 / 4; }
+#space-15 { grid-column: 1 / 2;  grid-row: 4 / 5; }
+.center  { grid-column: 2 / 5;  grid-row: 2 / 5; display: flex; justify-content: center; align-items: center; }
+
+.info-panel {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.players-container, .log-container, .command-container {
+    background-color: var(--panel-bg);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+}
+
+h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+#player-list, #message-log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#player-list li, #message-log li {
+    padding: 5px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+#message-log li {
+    font-size: 14px;
+}
+
+#command-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#command-form input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#command-form button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#command-form button:hover {
+    background-color: #0056b3;
+}
+
+.player-marker {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.players-on-space {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    display: flex;
+    gap: 3px;
+}
+
+.player-marker-on-board {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.5);
+}
+
+#player-list .current-player {
+    font-weight: bold;
+    background-color: #e7f3ff;
+    border-left: 3px solid #007bff;
+    padding-left: 12px;
+}
