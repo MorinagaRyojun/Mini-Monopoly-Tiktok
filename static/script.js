@@ -5,14 +5,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const commandForm = document.getElementById('command-form');
     const playerList = document.getElementById('player-list');
     const messageLog = document.getElementById('message-log');
+    const gameBoard = document.getElementById('game-board');
 
     // State
     let lastLog = [];
+    let lastBoardSize = 0;
     const playerColors = ['#ff4136', '#0074d9', '#2ecc40', '#ffdc00', '#b10dc9', '#ff851b', '#7fdbff', '#f012be'];
 
     // --- Initialization ---
     fetchGameState();
-    setInterval(fetchGameState, 2000); // Poll every 2 seconds
+    setInterval(fetchGameState, 2000);
 
     // --- Event Listeners ---
     commandForm.addEventListener('submit', handleCommandSubmit);
@@ -29,12 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const playerName = playerNameInput.value.trim();
         const message = commandMessageInput.value.trim();
-
-        if (!playerName || !message) {
-            alert('Player Name and Command are required.');
-            return;
-        }
-
+        if (!playerName || !message) { alert('Player Name and Command are required.'); return; }
         try {
             const response = await fetch('/api/command', {
                 method: 'POST',
@@ -43,17 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const newState = await (response.ok ? response.json() : Promise.reject('Command submission failed'));
             renderGame(newState);
-            commandMessageInput.value = ''; // Clear input
-        } catch (error) {
-            console.error('Error sending command:', error);
-        }
+            commandMessageInput.value = '';
+        } catch (error) { console.error('Error sending command:', error); }
     }
 
     // --- Rendering Functions ---
     function renderGame(state) {
+        if (state.board.length !== lastBoardSize) {
+            createBoard(state.board);
+            lastBoardSize = state.board.length;
+        }
+        updateBoard(state.board, state.players);
         renderPlayerList(state.players, state.currentPlayerName);
-        renderBoard(state.board, state.players);
-        // Only update log if it has changed to prevent scroll jumping
         if (JSON.stringify(state.log) !== JSON.stringify(lastLog)) {
             renderMessageLog(state.log);
             lastLog = state.log;
@@ -66,10 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             const propList = player.properties.join(', ') || 'None';
             li.innerHTML = `<span class="player-marker" style="background-color: ${playerColors[index % playerColors.length]}"></span> <strong>${player.name}</strong>: $${player.money} <br><small>Properties: ${propList}</small>`;
-
-            if (player.name === currentPlayerName) {
-                li.classList.add('current-player');
-            }
+            if (player.name === currentPlayerName) li.classList.add('current-player');
             playerList.appendChild(li);
         });
     }
@@ -84,43 +79,74 @@ document.addEventListener('DOMContentLoaded', () => {
         messageLog.scrollTop = messageLog.scrollHeight;
     }
 
-    function renderBoard(boardData, players) {
-        // Clear existing player markers first
-        document.querySelectorAll('.player-marker-on-board').forEach(marker => marker.remove());
+    function getPosition(index, sideLength) {
+        if (index < sideLength) return { row: sideLength, col: index + 1 }; // Bottom
+        if (index < 2 * sideLength) return { row: sideLength - (index - sideLength), col: sideLength }; // Right
+        if (index < 3 * sideLength) return { row: 1, col: sideLength - (index - 2 * sideLength) }; // Top
+        return { row: index - 3 * sideLength + 1, col: 1 }; // Left
+    }
 
-        // Update space details (only needs to be done once, but simple to do it every time)
-        for (let i = 0; i < 12; i++) {
-            const spaceDiv = document.getElementById(`space-${i}`);
-            if (spaceDiv && spaceDiv.children.length < 2) { // Avoid re-rendering text content
-                const spaceInfo = boardData[i] || "";
-                const nameMatch = spaceInfo.match(/\[(.*?)(?:\s\(| -|\])/);
-                const ownerMatch = spaceInfo.match(/Owner: (\w+)/);
+    function createBoard(boardData) {
+        gameBoard.innerHTML = '';
+        const boardSize = boardData.length;
+        if (boardSize === 0) return;
 
-                let nameContent = nameMatch ? nameMatch[1] : spaceInfo;
-                // For properties, just show the name, not price/rent details in the main view
-                if(nameContent.includes("Price:")){
-                    nameContent = nameContent.split(" - ")[0];
-                }
+        const sideLength = (boardSize / 4) + 1;
+        gameBoard.style.gridTemplateColumns = `100px repeat(${sideLength - 2}, 1fr) 100px`;
+        gameBoard.style.gridTemplateRows = `100px repeat(${sideLength - 2}, 1fr) 100px`;
 
-                spaceDiv.innerHTML = `<div class="space-name">${nameContent}</div>`;
-                if (ownerMatch) {
-                    spaceDiv.innerHTML += `<div class="space-owner">Owner: ${ownerMatch[1]}</div>`;
-                }
-                spaceDiv.innerHTML += `<div class="players-on-space"></div>`;
+        for (let i = 0; i < boardSize; i++) {
+            const space = boardData[i];
+            const spaceDiv = document.createElement('div');
+            spaceDiv.id = `space-${i}`;
+            spaceDiv.className = 'space';
+
+            const pos = getPosition(i, sideLength);
+            spaceDiv.style.gridRow = `${pos.row} / span 1`;
+            spaceDiv.style.gridColumn = `${pos.col} / span 1`;
+
+            if (space.image_url) {
+                spaceDiv.style.backgroundImage = `url('${space.image_url}')`;
             }
+
+            spaceDiv.innerHTML = `<div class="space-name">${space.name}</div><div class="players-on-space"></div>`;
+            gameBoard.appendChild(spaceDiv);
         }
 
-        // Place new player markers
+        const centerDiv = document.createElement('div');
+        centerDiv.className = 'center';
+        centerDiv.style.gridArea = `2 / 2 / ${sideLength} / ${sideLength}`;
+        centerDiv.innerHTML = '<h2>Mini Monopoly</h2>';
+        gameBoard.appendChild(centerDiv);
+    }
+
+    function updateBoard(boardData, players) {
+        document.querySelectorAll('.player-marker-on-board').forEach(marker => marker.remove());
+        boardData.forEach((space, i) => {
+            const spaceDiv = document.getElementById(`space-${i}`);
+            if (space.type === 'PROPERTY' && space.owner) {
+                let ownerDiv = spaceDiv.querySelector('.space-owner');
+                if (!ownerDiv) {
+                    ownerDiv = document.createElement('div');
+                    ownerDiv.className = 'space-owner';
+                    spaceDiv.appendChild(ownerDiv);
+                }
+                ownerDiv.textContent = `Owner: ${space.owner}`;
+            } else {
+                 let ownerDiv = spaceDiv.querySelector('.space-owner');
+                 if(ownerDiv) ownerDiv.remove();
+            }
+        });
+
         players.forEach((player, index) => {
-            const spaceIndex = player.position;
-            const spaceDiv = document.getElementById(`space-${spaceIndex}`);
+            const spaceDiv = document.getElementById(`space-${player.position}`);
             if (spaceDiv) {
                 const playersOnSpaceDiv = spaceDiv.querySelector('.players-on-space');
                 if (playersOnSpaceDiv) {
                     const marker = document.createElement('div');
                     marker.className = 'player-marker-on-board';
                     marker.style.backgroundColor = playerColors[index % playerColors.length];
-                    marker.title = player.name; // Hover to see name
+                    marker.title = player.name;
                     playersOnSpaceDiv.appendChild(marker);
                 }
             }
