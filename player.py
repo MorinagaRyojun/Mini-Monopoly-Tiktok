@@ -39,9 +39,15 @@ class Player:
             return True
         return False
 
-    def get_status(self):
-        prop_names = [p.name for p in self.properties]
-        return f"Player: {self.name}, Money: ${self.money}, Properties: {', '.join(prop_names) or 'None'}"
+    def get_state(self):
+        """Returns the player's state as a dictionary."""
+        return {
+            "name": self.name,
+            "money": self.money,
+            "properties": [p.name for p in self.properties],
+            "position": self.position,
+            "isBankrupt": self.is_bankrupt,
+        }
 
     def owns_all_properties_in_set(self, property_set):
         """Checks if the player owns all properties in a given set (list of properties)."""
