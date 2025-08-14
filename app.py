@@ -6,12 +6,17 @@ from command_parser import parse_command
 app = Flask(__name__)
 
 # Create a single, global game instance
-game_instance = Game(SETTINGS)
+game_instance = Game(config=SETTINGS)
 
 @app.route('/')
 def index():
     """Serves the main HTML page."""
     return render_template('index.html')
+
+@app.route('/setup')
+def setup():
+    """Serves the setup page."""
+    return render_template('setup.html')
 
 @app.route('/api/game_state')
 def game_state():
@@ -40,6 +45,26 @@ def handle_command():
         game_instance._add_log(f"Invalid command or not allowed in current state: '{message}'")
 
     # Return the updated game state
+    return jsonify(game_instance.get_state())
+
+@app.route('/api/new_game', methods=['POST'])
+def new_game():
+    """Creates a new game instance, resetting the server state."""
+    global game_instance
+    options = request.get_json()
+
+    # Basic validation
+    board_size = int(options.get("board_size", 12))
+    image_urls = options.get("image_urls", {})
+
+    game_options = {
+        "board_size": board_size,
+        "image_urls": image_urls
+    }
+
+    print(f"--- Creating new game with options: {game_options} ---")
+    game_instance = Game(config=SETTINGS, game_options=game_options)
+
     return jsonify(game_instance.get_state())
 
 if __name__ == '__main__':

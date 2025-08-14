@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Setup - Mini Monopoly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="setup-container">
+        <h1>Game Setup</h1>
+        <form id="setup-form">
+            <fieldset>
+                <legend>Board Settings</legend>
+                <label for="board-size">Board Size (multiple of 4, min 8):</label>
+                <input type="number" id="board-size" name="board_size" value="12" step="4" min="8" required>
+            </fieldset>
+
+            <fieldset>
+                <legend>Image URLs (Optional)</legend>
+                <p>Set custom images for different space types.</p>
+                <label for="img-property">Property Spaces:</label>
+                <input type="url" id="img-property" name="PROPERTY" placeholder="https://example.com/property.png">
+
+                <label for="img-chance">Chance Spaces:</label>
+                <input type="url" id="img-chance" name="CHANCE" placeholder="https://example.com/chance.png">
+
+                <label for="img-tax">Tax Spaces:</label>
+                <input type="url" id="img-tax" name="TAX" placeholder="https://example.com/tax.png">
+
+                <label for="img-go">GO Space:</label>
+                <input type="url" id="img-go" name="GO" placeholder="https://example.com/go.png">
+
+                <label for="img-jail">Jail Space:</label>
+                <input type="url" id="img-jail" name="JAIL" placeholder="https://example.com/jail.png">
+
+                <label for="img-parking">Free Parking Space:</label>
+                <input type="url" id="img-parking" name="FREE_PARKING" placeholder="https://example.com/parking.png">
+
+                <label for="img-go-to-jail">Go To Jail Space:</label>
+                <input type="url" id="img-go-to-jail" name="GO_TO_JAIL" placeholder="https://example.com/gototjail.png">
+            </fieldset>
+
+            <button type="submit">Start New Game with These Settings</button>
+        </form>
+        <a href="/" class="back-link">Back to Game</a>
+    </div>
+    <script src="{{ url_for('static', filename='setup.js') }}"></script>
+</body>
+</html>
